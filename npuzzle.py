@@ -1,7 +1,3 @@
-"""
-N-Puzzle solver using A* search with pygame visualization.
-"""
-
 import heapq
 import random
 import visuals
