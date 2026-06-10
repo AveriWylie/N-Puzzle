@@ -38,6 +38,7 @@ def pack_swap(packed: int, i: int, j: int, bits: int) -> int:
     bi, bj = i * bits, j * bits
     vi = (packed >> bi) & mask
     vj = (packed >> bj) & mask
+    # ~ bitwise not
     return (packed & ~((mask << bi) | (mask << bj))) | (vj << bi) | (vi << bj)
 
 
@@ -64,13 +65,12 @@ def random_state(n: int) -> tuple[int, ...]:
     while True:
         random.shuffle(tiles)
         state = tuple(tiles)
-
-        if is_solvable(state, n):
-            return state
+        return state
 
 
 EASY_MOVES = {4: 30, 5: 22, 6: 18}
-# just to easily solve one, linear time in this problem very easily exponentiates
+# just to easily solve higher order n configurations, linear time in this problem very
+# easily exponentiates
 def easy_state(n: int) -> tuple[int, ...]:
     state = make_goal(n)
     prev = None
@@ -91,8 +91,8 @@ def find_blank(state: tuple[int, ...], n: int) -> tuple[int, int]:
 
 
 def swap(state: tuple[int, ...], i: int, j: int) -> tuple[int, ...]:
-    # all moves are transpositions
     lst = list(state)
+    # all moves are transpositions
     lst[i], lst[j] = lst[j], lst[i]
     return lst
 
@@ -184,7 +184,6 @@ Returns:
 """
 def manhattan_distance(state: tuple[int, ...], n: int) -> int:
     total = 0
-
     for i, v in enumerate(state):
         if v:
             total += abs(i // n - (v - 1) // n) + abs(i % n - (v - 1) % n)
@@ -234,7 +233,6 @@ def is_solvable(state: tuple[int, ...], n: int) -> bool:
         return inversions % 2 == 0
 
     blank_row_from_bottom = n - state.index(0) // n  # even-width grid
-
     return (inversions + blank_row_from_bottom) % 2 == 1
 
 
@@ -245,7 +243,7 @@ Finds the shortest sequence of moves from start to the goal state using
 the A* graph-search algorithm.
 
 Core data structures:
-   open_set  - min-heap of (f, g, packed_state) tuples. f = g + h, where g
+    open_set - min-heap of (f, g, packed_state) tuples. f = g + h, where g
                is the exact cost from start and h is the heuristic estimate
                to goal. heapq in Python is a min-heap, so the lowest-f
                state is always popped next. We store packed ints rather than
@@ -273,12 +271,11 @@ Returns:
 -----------------------------------------------------------------------------
 """
 def astar(start: tuple[int, ...],n: int, heuristic: Callable = manhattan_distance) -> Optional[list[tuple[int, ...]]]:
-
     goal_packed = pack(make_goal(n))
     start_packed = pack(start)
     size = n * n
     bits = (size - 1).bit_length()
-
+    # Start at goal
     if start_packed == goal_packed:
         return [start]
 
@@ -335,22 +332,6 @@ def astar(start: tuple[int, ...],n: int, heuristic: Callable = manhattan_distanc
                 heapq.heappush(heap, (tg + h, tg, nb))
 
     return None
-
-
-# ---------------------------------------------------------------------------
-# Path reconstruction
-# ---------------------------------------------------------------------------
-
-def reconstruct_path(came_from: dict[tuple[int, ...], tuple[int, ...]],current: tuple[int, ...],) -> list[tuple[int, ...]]:
-    path = []
-    while current in came_from:
-        path.append(current)
-        current = came_from[current]
-
-    path.append(current)
-    path.reverse()
-
-    return path
 
 # ---------------------------------------------------------------------------
 
@@ -420,13 +401,13 @@ def solve(initial: tuple[int, ...], n: int) -> None:
 
 # Entry
 if __name__ == "__main__":
-    n = 4
+    n = 3
     easy = True
 
     if n >= 4 and easy:
-        start = easy_state(n)
+        state = easy_state(n)
 
     else:
-        start = random_state(n)
+        state = random_state(n)
 
-    solve(start, n=n)
+    solve(state, n=n)
